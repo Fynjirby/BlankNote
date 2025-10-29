@@ -4,10 +4,6 @@ BlankNote is written in C with GTK4. It has no UI elements except the text view,
 
 <img src="assets/photo.png" width="500px">
 
-# Install
-Soon on AUR!
-<!-- Get it on AUR - [link to aur] -->
-
 # Building
 Clone repo, run `make`, done!
 
