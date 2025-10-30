@@ -16,7 +16,7 @@ Also you can install .desktop and icon with `make desktop`, so BlankNote can be 
 For other options check `Makefile`
 
 # Plugins
-To develop plugins please check the plugin guidelines - [plugnis.md](https://github.com/fynjirby/blanknote/blob/master/plugins.md)
+To develop plugins please check the plugin guidelines - [plugins.md](https://github.com/fynjirby/blanknote/blob/master/plugins.md)
 
 It is really simple to create one so it worth trying :)
 
