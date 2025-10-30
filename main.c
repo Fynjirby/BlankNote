@@ -1,3 +1,5 @@
+#include <gio/gio.h>
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <string.h>
@@ -138,15 +140,12 @@ static void save_file(GtkWindow *window, GtkTextBuffer *buffer) {
     GApplication *app = g_application_get_default();
     if (app) {
       GNotification *notify = g_notification_new("BlankNote");
-
       gchar *body = g_strdup_printf("File %s saved!", current_file);
       g_notification_set_body(notify, body);
       g_free(body);
-
       g_application_send_notification(app, NULL, notify);
       g_object_unref(notify);
     }
-
     return;
   }
 
@@ -162,6 +161,129 @@ static void open_file_from_arg(GApplication *app, GFile **files, gint n_files,
   g_application_activate(app);
 }
 
+static void run_plugin(const char *plugin_path, GtkTextView *text_view) {
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(text_view);
+  GtkTextIter start, end;
+  char *input_text = NULL;
+
+  if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end)) {
+    input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+  } else {
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+  }
+
+  const char *cmd[] = {plugin_path, NULL};
+  GError *error = NULL;
+  GSubprocess *proc = g_subprocess_newv(
+      cmd, G_SUBPROCESS_FLAGS_STDIN_PIPE | G_SUBPROCESS_FLAGS_STDOUT_PIPE,
+      &error);
+  if (!proc) {
+    g_warning("Failed to start plugin %s: %s", plugin_path, error->message);
+    g_error_free(error);
+    g_free(input_text);
+    return;
+  }
+
+  GOutputStream *in = g_subprocess_get_stdin_pipe(proc);
+  GInputStream *out = g_subprocess_get_stdout_pipe(proc);
+
+  g_output_stream_write(in, input_text, strlen(input_text), NULL, NULL);
+  g_output_stream_close(in, NULL, NULL);
+  g_free(input_text);
+
+  GString *output_data = g_string_new(NULL);
+  char io_buf[4096];
+  gssize bytes_read;
+  while ((bytes_read = g_input_stream_read(out, io_buf, sizeof(io_buf), NULL,
+                                           NULL)) > 0) {
+    g_string_append_len(output_data, io_buf, bytes_read);
+  }
+
+  g_subprocess_wait_check(proc, NULL, NULL);
+
+  char *result = g_strdup(output_data->str);
+  g_string_free(output_data, TRUE);
+
+  if (gtk_text_buffer_get_selection_bounds(buffer, &start, &end)) {
+    gtk_text_buffer_delete(buffer, &start, &end);
+    gtk_text_buffer_insert(buffer, &start, result, -1);
+  } else {
+    gtk_text_buffer_set_text(buffer, result, -1);
+  }
+
+  g_free(result);
+  g_object_unref(proc);
+}
+
+static void launch_fuzzel_plugins(GtkTextView *text_view) {
+  char *plugins_dir = g_build_filename(g_get_home_dir(), ".config", "blanknote",
+                                       "plugins", NULL);
+  GDir *dir = g_dir_open(plugins_dir, 0, NULL);
+  if (!dir) {
+    g_free(plugins_dir);
+    return;
+  }
+
+  GString *list = g_string_new(NULL);
+  const char *name;
+  while ((name = g_dir_read_name(dir))) {
+    char *path = g_build_filename(plugins_dir, name, NULL);
+    if (g_file_test(path, G_FILE_TEST_IS_EXECUTABLE)) {
+      g_string_append_printf(list, "%s\n", name);
+    }
+    g_free(path);
+  }
+  g_dir_close(dir);
+
+  if (list->len == 0) {
+    g_string_free(list, TRUE);
+    g_free(plugins_dir);
+    return;
+  }
+
+  const char *fuzzel_cmd[] = {"fuzzel", "-d", "--lines=5", NULL};
+  GError *error = NULL;
+  GSubprocess *fuzzel = g_subprocess_newv(
+      fuzzel_cmd,
+      G_SUBPROCESS_FLAGS_STDIN_PIPE | G_SUBPROCESS_FLAGS_STDOUT_PIPE, &error);
+  if (!fuzzel) {
+    g_warning("fuzzel not available: %s", error->message);
+    g_error_free(error);
+    g_string_free(list, TRUE);
+    g_free(plugins_dir);
+    return;
+  }
+
+  GOutputStream *in = g_subprocess_get_stdin_pipe(fuzzel);
+  g_output_stream_write(in, list->str, list->len, NULL, NULL);
+  g_output_stream_close(in, NULL, NULL);
+  g_string_free(list, TRUE);
+
+  GInputStream *out = g_subprocess_get_stdout_pipe(fuzzel);
+  char buffer[256] = {0};
+  gsize bytes_read = 0;
+  GBytes *bytes = g_input_stream_read_bytes(out, 256, NULL, &error);
+  if (bytes) {
+    const char *data = g_bytes_get_data(bytes, &bytes_read);
+    if (bytes_read > 0 && data[bytes_read - 1] == '\n')
+      bytes_read--;
+    memcpy(buffer, data, bytes_read < 255 ? bytes_read : 255);
+    g_bytes_unref(bytes);
+  }
+  g_object_unref(fuzzel);
+
+  if (buffer[0] != '\0') {
+    char *plugin_path = g_build_filename(plugins_dir, buffer, NULL);
+    if (g_file_test(plugin_path, G_FILE_TEST_IS_EXECUTABLE)) {
+      run_plugin(plugin_path, text_view);
+    }
+    g_free(plugin_path);
+  }
+
+  g_free(plugins_dir);
+}
+
 static gboolean handle_keys(GtkEventControllerKey *controller, guint keyval,
                             guint keycode, GdkModifierType state,
                             gpointer user_data) {
@@ -171,6 +293,10 @@ static gboolean handle_keys(GtkEventControllerKey *controller, guint keyval,
 
   if (state & GDK_CONTROL_MASK) {
     switch (keyval) {
+    case GDK_KEY_b:
+      launch_fuzzel_plugins(GTK_TEXT_VIEW(text_view));
+      return TRUE;
+
     case GDK_KEY_s:
     case GDK_KEY_S:
       save_file(window, buffer);
@@ -246,6 +372,24 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
 int main(int argc, char **argv) {
   load_config();
+
+  char *config_dir =
+      g_build_filename(g_get_home_dir(), ".config", "blanknote", NULL);
+  char *config_path = g_build_filename(config_dir, "config", NULL);
+  if (!g_file_test(config_path, G_FILE_TEST_EXISTS)) {
+    if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR)) {
+      g_mkdir_with_parents(config_dir, 0755);
+    }
+    g_file_set_contents(config_path, "", 0, NULL);
+  }
+
+  char *plugins_dir = g_build_filename(config_dir, "plugins", NULL);
+  if (!g_file_test(plugins_dir, G_FILE_TEST_IS_DIR)) {
+    g_mkdir_with_parents(plugins_dir, 0755);
+  }
+
+  g_free(config_dir);
+  g_free(plugins_dir);
 
   GtkApplication *app =
       gtk_application_new("dev.fynjirby.blanknote", G_APPLICATION_HANDLES_OPEN);
