@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-input = STDIN.read
-word_count = input.split(/\s+/).reject(&:empty?).size
-system("notify-send 'BlankNote' '#{word_count} words!'")
-puts input

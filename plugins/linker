@@ -1,0 +1,20 @@
+#!/bin/bash
+while IFS= read -r line || [[ -n $line ]]; do
+    trimmed=$(printf '%s' "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+    if [[ $trimmed =~ \[.*\]\(.*\) ]]; then
+        printf '%s\n' "$trimmed"
+        continue
+    fi
+
+    if [[ $trimmed =~ ([a-zA-Z0-9._-]+\.[a-zA-Z]{2,})(/[^[:space:]]*)? ]]; then
+        match=${BASH_REMATCH[0]}
+        text=${trimmed//$match/}
+        text=$(printf '%s' "$text" | xargs)
+        url="https://$match"
+        [[ -z $text ]] && text=$match
+        printf '[%s](%s)\n' "$text" "$url"
+    else
+        printf '%s\n' "$trimmed"
+    fi
+done

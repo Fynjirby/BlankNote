@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+
+MORSE_CODE_DICT = {
+    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+    'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+    'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+    'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+    'Y': '-.--', 'Z': '--..',
+    'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 'f': '..-.',
+    'g': '--.', 'h': '....', 'i': '..', 'j': '.---', 'k': '-.-', 'l': '.-..',
+    'm': '--', 'n': '-.', 'o': '---', 'p': '.--.', 'q': '--.-', 'r': '.-.',
+    's': '...', 't': '-', 'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-',
+    'y': '-.--', 'z': '--..',
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-', 
+    '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--',
+    '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...',
+    ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', '_': '..--.-',
+    '"': '.-..-.', '$': '...-..-', '@': '.--.-.', ' ': '/'
+}
+
+REVERSE_DICT = {v: k.upper() for k, v in MORSE_CODE_DICT.items()}
+
+def is_morse(text):
+    morse_chars = set(".-/ \n")
+    non_morse = [c for c in text if c not in morse_chars]
+    return len(non_morse) < len(text) / 2
+
+def encode(text):
+    encoded_lines = []
+    for line in text.splitlines():
+        encoded_words = []
+        for word in line.split(' '):
+            encoded_word = ' '.join(MORSE_CODE_DICT.get(c, '') for c in word)
+            encoded_words.append(encoded_word)
+        encoded_lines.append(' / '.join(encoded_words))
+    return '\n'.join(encoded_lines)
+
+def decode(morse):
+    decoded_lines = []
+    for line in morse.splitlines():
+        decoded_words = []
+        for word in line.split(' / '):
+            letters = word.split()
+            decoded_words.append(''.join(REVERSE_DICT.get(letter, '') for letter in letters))
+        decoded_lines.append(' '.join(decoded_words))
+    return '\n'.join(decoded_lines)
+
+def send_notification():
+    subprocess.run(["notify-send", "BlankNote", "Its just time to learn morse btw :)"])
+
+def main():
+    input_text = sys.stdin.read()
+    input_text = input_text.rstrip('\n')
+    if is_morse(input_text):
+        output = decode(input_text)
+    else:
+        output = encode(input_text)
+    sys.stdout.write(output + '\n')
+    send_notification() 
+
+if __name__ == "__main__":
+    main()

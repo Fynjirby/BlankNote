@@ -72,7 +72,7 @@ And you can create a plugin on `python`, `lua`, `ruby`, `go` (compiled binary), 
 
 Just dont forget to add a sheband or compile it to use
 
-Look in `example-plugins` folder to see some weirdest plugins :)
+Look in `plugins` folder to see some weirdest plugins :)
 
 - To create great plugins its better to use the BlankNote format for plugins, its simple.
 
