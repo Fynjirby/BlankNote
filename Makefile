@@ -1,6 +1,6 @@
 # Makefile of BlankNote
 
-VERSION = 1.0.1
+VERSION = 1.0.2
 
 DESTDIR = /usr/local/bin
 MANDIR = /usr/local/share/man/man1

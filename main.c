@@ -216,6 +216,39 @@ static void run_plugin(const char *plugin_path, GtkTextView *text_view) {
   g_object_unref(proc);
 }
 
+static void fuzzel_read_done(GObject *source, GAsyncResult *res,
+                             gpointer user_data) {
+  GInputStream *out = G_INPUT_STREAM(source);
+  GError *error = NULL;
+  GBytes *bytes = g_input_stream_read_bytes_finish(out, res, &error);
+  if (!bytes)
+    return;
+
+  gsize bytes_read;
+  const char *data = g_bytes_get_data(bytes, &bytes_read);
+
+  gsize len = bytes_read;
+  if (len > 0 && data[len - 1] == '\n')
+    len--;
+
+  gchar *buffer = g_malloc(len + 1);
+  memcpy(buffer, data, len);
+  buffer[len] = '\0';
+
+  GtkTextView *text_view = GTK_TEXT_VIEW(user_data);
+
+  char *plugins_dir = g_build_filename(g_get_home_dir(), ".config", "blanknote",
+                                       "plugins", NULL);
+  char *plugin_path = g_build_filename(plugins_dir, buffer, NULL);
+  g_free(buffer);
+  g_free(plugins_dir);
+
+  if (g_file_test(plugin_path, G_FILE_TEST_IS_EXECUTABLE)) {
+    run_plugin(plugin_path, text_view);
+  }
+  g_free(plugin_path);
+}
+
 static void launch_fuzzel_plugins(GtkTextView *text_view) {
   char *plugins_dir = g_build_filename(g_get_home_dir(), ".config", "blanknote",
                                        "plugins", NULL);
@@ -248,7 +281,7 @@ static void launch_fuzzel_plugins(GtkTextView *text_view) {
       fuzzel_cmd,
       G_SUBPROCESS_FLAGS_STDIN_PIPE | G_SUBPROCESS_FLAGS_STDOUT_PIPE, &error);
   if (!fuzzel) {
-    g_warning("fuzzel not available: %s", error->message);
+    g_warning("Fuzzel not available: %s", error->message);
     g_error_free(error);
     g_string_free(list, TRUE);
     g_free(plugins_dir);
@@ -261,26 +294,10 @@ static void launch_fuzzel_plugins(GtkTextView *text_view) {
   g_string_free(list, TRUE);
 
   GInputStream *out = g_subprocess_get_stdout_pipe(fuzzel);
-  char buffer[256] = {0};
-  gsize bytes_read = 0;
-  GBytes *bytes = g_input_stream_read_bytes(out, 256, NULL, &error);
-  if (bytes) {
-    const char *data = g_bytes_get_data(bytes, &bytes_read);
-    if (bytes_read > 0 && data[bytes_read - 1] == '\n')
-      bytes_read--;
-    memcpy(buffer, data, bytes_read < 255 ? bytes_read : 255);
-    g_bytes_unref(bytes);
-  }
+  g_input_stream_read_bytes_async(out, 256, G_PRIORITY_DEFAULT, NULL,
+                                  fuzzel_read_done, text_view);
+
   g_object_unref(fuzzel);
-
-  if (buffer[0] != '\0') {
-    char *plugin_path = g_build_filename(plugins_dir, buffer, NULL);
-    if (g_file_test(plugin_path, G_FILE_TEST_IS_EXECUTABLE)) {
-      run_plugin(plugin_path, text_view);
-    }
-    g_free(plugin_path);
-  }
-
   g_free(plugins_dir);
 }
 

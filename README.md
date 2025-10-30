@@ -34,3 +34,4 @@ Run with `blanknote [file]`
 
 `Ctrl-S` - Save file
 
+`Ctrl-B` - Open plugins picker
