@@ -8,7 +8,7 @@ ICONDIR = $(HOME)/.local/share/icons/hicolor/256x256/apps
 DESKTOPDIR = $(HOME)/.local/share/applications
 
 build:
-	gcc main.c -o blanknote $(shell pkg-config --cflags --libs gtk4)
+	gcc main.c config.c files.c plugins.c -o blanknote $(shell pkg-config --cflags --libs gtk4)
 
 clean:
 	rm -f blanknote
