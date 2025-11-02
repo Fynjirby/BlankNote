@@ -11,6 +11,8 @@ char font_name[128] = "JetBrains Mono, FiraCode Nerd Font, Fira Code, "
                       "Ubuntu Mono, DejaVu Sans Mono, monospace";
 int margin_vertical = 5;
 int margin_horizontal = 5;
+char sel_bg[64] = "#264F78";
+char sel_color[64] = "#FFFFFF";
 
 void load_config(void) {
   char path[256];
@@ -48,6 +50,10 @@ void load_config(void) {
       } else if (strcmp(key, "margin-y") == 0) {
         int m = atoi(value);
         margin_vertical = m;
+      } else if (strcmp(key, "sel-bg") == 0) {
+        g_strlcpy(sel_bg, value, sizeof(sel_bg));
+      } else if (strcmp(key, "sel-color") == 0) {
+        g_strlcpy(sel_color, value, sizeof(sel_color));
       }
     }
   }

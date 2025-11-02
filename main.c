@@ -17,18 +17,22 @@ static void update_style(GtkWidget *text_view) {
 
   char css[512];
   g_snprintf(css, sizeof(css),
+             "textview text selection {\n"
+             "  background-color: %s;\n"
+             "  color: %s;\n"
+             "}\n"
              "textview, textview text {\n"
              "  font-family: '%s';\n"
              "  font-size: %dpt;\n"
-             "  background: %s;\n"
+             "  background-color: %s;\n"
              "  color: white;\n"
              "  margin: %dpx %dpx;\n"
              "}\n"
              "scrolledwindow {\n"
              "  background: %s;\n"
              "}\n",
-             font_name, font_size, bg_color, margin_vertical, margin_horizontal,
-             bg_color);
+             sel_bg, sel_color, font_name, font_size, bg_color, margin_vertical,
+             margin_horizontal, bg_color);
 
   gtk_css_provider_load_from_string(css_provider, css);
 
@@ -37,7 +41,6 @@ static void update_style(GtkWidget *text_view) {
                                              GTK_STYLE_PROVIDER(css_provider),
                                              GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
-
 
 static gboolean handle_keys(GtkEventControllerKey *controller, guint keyval,
                             guint keycode, GdkModifierType state,

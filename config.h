@@ -9,5 +9,7 @@ extern char bg_color[64];
 extern char font_name[128];
 extern int margin_vertical;
 extern int margin_horizontal;
+extern char sel_bg[64];
+extern char sel_color[64];
 
 #endif
