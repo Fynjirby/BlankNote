@@ -100,7 +100,7 @@ static gboolean handle_keys(GtkEventControllerKey *controller, guint keyval,
 static void activate(GtkApplication *app, gpointer user_data) {
   GtkWidget *window = gtk_application_window_new(app);
   gtk_window_set_title(GTK_WINDOW(window), "BlankNote");
-  gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
+  gtk_window_set_default_size(GTK_WINDOW(window), 700, 500);
 
   GtkWidget *text_view = gtk_text_view_new();
   GtkWidget *scrolled = gtk_scrolled_window_new();
