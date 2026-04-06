@@ -2,23 +2,11 @@
 
 BlankNote is written in C with GTK4. It has no UI elements except the text view, controlled with keybindings.
 
-# Building
-Dependencies: `gtk4`
-1. Clone repo
-2. Build with `make`
-3. Install with `sudo make install`
+## Installing
+Download prebuilt binary from releases and move to any folder in your `$PATH`, usually `/usr/local/bin`
+To get latest and more complex installation (with icon, `.desktop`, manpage) you can build it yourself, see how to do it in <a href="#building">building</a>
 
-To uninstall, use `sudo make uninstall`
-
-For developing, run `make run`
-
-# Configuration
-Check `docs/config.md` or use `man 5 blanknote` for configuration documentation
-
-# Plugins
-To develop plugins please check the plugin guidelines in `docs/plugins.md`
-
-# Usage
+## Usage
 Run with `blanknote [file]`
 
 ## Keybindings
@@ -33,3 +21,19 @@ Run with `blanknote [file]`
 `Ctrl-S` - Save file
 
 `Ctrl-B` - Open plugins picker
+
+## Configuration
+Check `docs/config.md` or use `man 5 blanknote` for configuration documentation
+
+## Plugins
+To develop plugins please check the plugin guidelines in `docs/plugins.md`
+
+## Building
+Dependencies: `gtk4`
+1. Clone repo
+2. Build with `make`
+3. Install with `sudo make install`
+
+To uninstall, use `sudo make uninstall`
+
+For developing, run `make run`
