@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+input = STDIN.read
+output = input.reverse
+print output
