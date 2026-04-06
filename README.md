@@ -4,11 +4,13 @@ BlankNote is written in C with GTK4. It has no UI elements except the text view,
 
 # Building
 Dependencies: `gtk4`
+1. Clone repo
+2. Build with `make`
+3. Install with `sudo make install`
 
-Clone repo, run `make`, done! Now run with `make run`
+To uninstall, use `sudo make uninstall`
 
-To install system-wide, run `sudo make install`
-To remove it, use `sudo make uninstall`
+For developing, run `make run`
 
 # Configuration
 Check `docs/config.md` or use `man 5 blanknote` for configuration documentation
