@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=BlankNote
+Comment=A damn simple note taking app
+Exec=blanknote
+Icon=blanknote
+Terminal=false
+Type=Application

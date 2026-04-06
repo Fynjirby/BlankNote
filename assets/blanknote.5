@@ -1,0 +1,53 @@
+.TH BLANKNOTE CONFIG 1 blanknote\-VERSION
+
+.PP
+In BlankNote the config aligns in \fB$HOME/.config/blanknote/config.ini\fR file.
+
+
+.SH Available config options
+.TS
+allbox;
+l l l l 
+l l l l .
+\fBOption\fP	\fBType\fP	\fBDefault\fP	\fBDescription\fP
+[font] \fBfont-family\fP	string	\fBJetBrains Mono, Hack, FiraCode, ...\fR	T{
+Font family list (first available font is used).
+T}
+[font] \fBfont-size\fP	int	\fB16\fR	Font size in points (pt)
+[colors] \fBbg-color\fP	string	\fB#1e1e1e\fR	Background color of the editor
+[colors] \fBsel-bg\fP	string	\fB#264F78\fR	Selection background color
+[colors] \fBsel-color\fP	string	\fB#FFFFFF\fR	Selection text color
+[ui] \fBmargin\fP	int	\fB5\fR	T{
+Sets both horizontal and vertical margins (in pixels)
+T}
+[ui] \fBmargin-x\fP	int	\fB5\fR	Sets horizontal margin only
+[ui] \fBmargin-y\fP	int	\fB5\fR	Sets vertical margin only
+[plugins] \fBlauncher\fP	string	-	T{
+Launcher command (e.g. - "rofi -dmenu" or "fuzzel -d")
+T}
+[plugins] \fBpath\fP	string	\fB/usr/share/blanknote/plugins\fR	Path where to find plugins
+.TE
+
+
+.SH Example config
+.EX
+[font]
+font-family=Hack
+font-size=12
+
+[colors]
+bg-color=#0D0D0D
+sel-bg=#755215
+sel-color=#F1F1F1
+
+[ui]
+margin-x=8
+margin-y=4
+
+[plugins]
+launcher=rofi -dmenu
+path=/home/me/.blanknote/plugins
+.EE
+
+.PP
+This this right config format, when you edit it, be careful with syntax
