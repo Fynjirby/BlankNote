@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
   g_free(config_dir);
 
   GtkApplication *app =
-      gtk_application_new("dev.jvqtil.blanknote", G_APPLICATION_HANDLES_OPEN);
+      gtk_application_new("blanknote", G_APPLICATION_HANDLES_OPEN);
   g_signal_connect(app, "open", G_CALLBACK(open_file_from_arg), NULL);
   g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
   int status = g_application_run(G_APPLICATION(app), argc, argv);
